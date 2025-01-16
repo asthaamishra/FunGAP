@@ -89,7 +89,7 @@ def run_repeat_modeler(genome_assembly, output_dir, log_dir, num_cores, logger):
         os.system(command1)
 
         log_file2 = os.path.join(log_dir, 'repeat_modeler.log')
-        command2 = '{} -database {} -pa {} > {} 2>&1'.format(
+        command2 = '{} -database {} -threads {} > {} 2>&1'.format(
             repeatmodeler_bin, genome_assembly, num_cores, log_file2
         )
         logger_txt.debug('[Run] %s', command2)
