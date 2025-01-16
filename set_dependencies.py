@@ -44,7 +44,11 @@ def main():
         help='Maker bin path'
     )
     parser.add_argument(
-        '-r', '--with_repeat_modeler', nargs='?', default='',
+        '-s', '--snap_path', nargs=1, required=True,
+        help='snap bin path'
+    )
+    parser.add_argument(
+        '-r', '--with_repeat_modeler', nargs=1, required=True,
         help='User-defined RepeatModeler bin path'
     )
     parser.add_argument(
@@ -76,6 +80,9 @@ def main():
     pfam_db_path = os.path.abspath(args.pfam_db_path[0])
     i_genemark_path = os.path.abspath(args.genemark_path[0])
     i_maker_path = os.path.abspath(args.maker_path[0])
+    i_snap_path = os.path.abspath(args.snap_path[0])
+    repeat_modeler_path = os.path.abspath(args.with_repeat_modeler[0])
+
     if args.with_repeat_modeler:
         with_repeat_modeler = os.path.abspath(args.with_repeat_modeler)
     else:
@@ -102,10 +109,10 @@ def main():
         gff3_merge_path, fasta_merge_path, maker2zff_path, fathom_path,
         forge_path, hmm_assembler_path, braker_path, busco_path,
         pfam_scan_path, blastp_path, blastn_path, blastx_path,
-        makeblastdb_path, samtools_path, bamtools_path, augustus_path
+        makeblastdb_path, samtools_path, bamtools_path, augustus_path, i_snap_path
     ) = get_path(
-        i_genemark_path, i_maker_path, with_repeat_modeler, with_augustus,
-        with_hisat2, with_trinity, with_braker, with_busco, with_pfam_scan
+        i_genemark_path, i_maker_path, i_snap_path, with_repeat_modeler, with_augustus,
+        with_hisat2, with_trinity, with_braker, with_busco, with_pfam_scan, i_snap_path
     )
     check_working(
         genemark_path, gmhmme3_path, probuild_path, build_database_path,
@@ -113,7 +120,7 @@ def main():
         gff3_merge_path, fasta_merge_path, maker2zff_path, fathom_path,
         forge_path, hmm_assembler_path, braker_path, busco_path,
         pfam_scan_path, blastp_path, blastn_path, blastx_path, makeblastdb_path,
-        samtools_path, bamtools_path, augustus_path
+        samtools_path, bamtools_path, augustus_path, i_snap_path
     )
 
     write_config(
@@ -122,7 +129,7 @@ def main():
         maker_path, gff3_merge_path, fasta_merge_path, maker2zff_path,
         fathom_path, forge_path, hmm_assembler_path, braker_path, busco_path,
         pfam_scan_path, blastp_path, blastn_path, blastx_path, makeblastdb_path,
-        samtools_path, bamtools_path, augustus_path
+        samtools_path, bamtools_path, augustus_path, i_snap_path
     )
     print(
         '\nSetting dependencies is complete. Check fungap.conf file in the '
@@ -159,7 +166,7 @@ def check_db(pfam_db_path):
 
 
 def get_path(
-        i_genemark_path, i_maker_path, with_repeat_modeler, with_augustus,
+        i_genemark_path, i_maker_path, i_snap_path, with_repeat_modeler, with_augustus,
         with_hisat2, with_trinity, with_braker, with_busco, with_pfam_scan):
     '''Get path'''
     print('\n** Checking the installed locations of dependencies **\n')
@@ -198,9 +205,9 @@ def get_path(
     gff3_merge_path = check_binary('Maker', i_maker_path, 'gff3_merge')
     fasta_merge_path = check_binary('Maker', i_maker_path, 'fasta_merge')
     maker2zff_path = check_binary('Maker', i_maker_path, 'maker2zff')
-    fathom_path = check_binary('Snap', i_maker_path, 'fathom')
-    forge_path = check_binary('Snap', i_maker_path, 'forge')
-    hmm_assembler_path = check_binary('Snap', i_maker_path, 'hmm-assembler.pl')
+    fathom_path = check_binary('Snap', i_snap_path, 'fathom')
+    forge_path = check_binary('Snap', i_snap_path, 'forge')
+    hmm_assembler_path = check_binary('Snap', i_snap_path, 'hmm-assembler.pl')
     build_database_path = check_binary(
         'RepeatModeler (BuildDatabase)', with_repeat_modeler, 'BuildDatabase',
     )
@@ -234,7 +241,7 @@ def check_working(
         gff3_merge_path, fasta_merge_path, maker2zff_path, fathom_path,
         forge_path, hmm_assembler_path, braker_path, busco_path, pfam_scan_path,
         blastp_path, blastn_path, blastx_path, makeblastdb_path, samtools_path,
-        bamtools_path, augustus_path):
+        bamtools_path, augustus_path, i_snap_path):
     '''Check if programs work properly'''
     print('\n** Checking the dependencies if they properly work **\n')
 
@@ -277,6 +284,7 @@ def check_working(
     check_working_internal(samtools_path, [samtools_path, '--help'])
     check_working_internal(bamtools_path, [bamtools_path, '--help'])
     check_working_internal(augustus_path, [augustus_path, '--help'])
+    check_working_internal(i_snap_path, [i_snap_path, '-help'])
     check_augustus_version(augustus_path)
 
     # For GeneMark, check the .gm_key
@@ -306,7 +314,7 @@ def write_config(
         maker_path, gff3_merge_path, fasta_merge_path, maker2zff_path,
         fathom_path, forge_path, hmm_assembler_path, braker_path, busco_path,
         pfam_scan_path, blastp_path, blastn_path, blastx_path, makeblastdb_path,
-        samtools_path, bamtools_path, augustus_path):
+        samtools_path, bamtools_path, augustus_path, i_snap_path):
     '''Write config file'''
     this_path = os.path.realpath(__file__)
     this_dir = os.path.dirname(this_path)
@@ -338,6 +346,7 @@ def write_config(
     outhandle.write('SAMTOOLS_PATH={}\n'.format(samtools_path))
     outhandle.write('BAMTOOLS_PATH={}\n'.format(bamtools_path))
     outhandle.write('AUGUSTUS_PATH={}\n'.format(augustus_path))
+    outhandle.write('SNAP_PATH={}\n'.format(i_snap_path))
     outhandle.close()
 
 
